@@ -1,0 +1,2 @@
+-r backend/pipeline/requirements.txt
+pytest

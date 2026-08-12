@@ -7,3 +7,7 @@ __pycache__/
 .tmp/
 .local_storage/
 pytest-cache-files-*/
+frontend/.next/
+frontend/public/sw.js
+frontend/public/workbox-*.js
+frontend/next-ui*.log

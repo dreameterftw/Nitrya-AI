@@ -1,4 +1,6 @@
 import "./globals.css";
+import { ThemeShell } from "@/components/ThemeShell";
+import { ThemeProvider } from "@/lib/theme-context";
 
 export const metadata = {
   title: "Nritya AI",
@@ -8,7 +10,11 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <ThemeProvider>
+          <ThemeShell>{children}</ThemeShell>
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

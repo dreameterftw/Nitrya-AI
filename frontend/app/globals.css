@@ -1,16 +1,277 @@
+:root {
+  color-scheme: light dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
 body {
   font-family: Arial, sans-serif;
-  margin: 24px;
+}
+
+[data-theme="western"] {
+  --bg: #0A0A0F;
+  --accent: #FF3D5A;
+  --text: #FFFFFF;
+  --surface: #181820;
+  --muted: #B8B8C8;
+  --score-anim-scale: 1.4;
+}
+
+[data-theme="indian"] {
+  --bg: #FDF6EC;
+  --accent: #B5651D;
+  --text: #2A1A0F;
+  --surface: #F3E2CE;
+  --muted: #6E4D32;
+  --score-anim-scale: 1.0;
+}
+
+[data-theme] {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
 }
 
 button,
 input,
 select {
-  margin: 4px;
+  border: 1px solid color-mix(in srgb, var(--text) 24%, transparent);
+  border-radius: 6px;
+  font: inherit;
+  min-height: 44px;
+}
+
+button {
+  background: var(--accent);
+  color: var(--bg);
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0 14px;
+}
+
+input {
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 12px;
 }
 
 video {
   display: block;
-  max-width: 480px;
   width: 100%;
+}
+
+main {
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 24px;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.topbar {
+  align-items: center;
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  display: flex;
+  height: 56px;
+  justify-content: space-between;
+  padding: 0 18px;
+}
+
+.brand {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.theme-label {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.theme-picker {
+  display: grid;
+  gap: 0;
+  grid-template-columns: 1fr 1fr;
+  height: calc(100vh - 56px);
+  max-width: none;
+  padding: 0;
+}
+
+.theme-choice {
+  border: 0;
+  border-radius: 0;
+  font-size: clamp(1.5rem, 6vw, 4rem);
+  min-height: 100%;
+}
+
+.western-choice {
+  background: #0A0A0F;
+  color: #FF3D5A;
+}
+
+.indian-choice {
+  background: #FDF6EC;
+  color: #B5651D;
+}
+
+.results-view {
+  display: grid;
+  gap: 18px;
+}
+
+.score-panel,
+.theme-card,
+.raw-result {
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.eyebrow {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+}
+
+.score-display {
+  font-size: clamp(3rem, 18vw, 6rem);
+  font-weight: 900;
+  line-height: 1;
+  max-width: 100%;
+  transform-origin: left center;
+  width: fit-content;
+}
+
+.score-metrics {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 22px 0 0;
+}
+
+.score-metrics div {
+  min-width: 0;
+}
+
+.score-metrics dt {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.score-metrics dd {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin: 4px 0 0;
+}
+
+.energy-track {
+  background: color-mix(in srgb, var(--text) 12%, transparent);
+  border-radius: 999px;
+  height: 14px;
+  overflow: hidden;
+}
+
+.energy-fill {
+  background: var(--accent);
+  height: 100%;
+}
+
+.profile-browser {
+  height: calc(100vh - 140px);
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+}
+
+.profile-reel {
+  background: var(--surface);
+  height: calc(100vh - 140px);
+  position: relative;
+  scroll-snap-align: start;
+}
+
+.profile-video {
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-overlay {
+  bottom: 24px;
+  color: white;
+  font-weight: 800;
+  left: 18px;
+  position: absolute;
+}
+
+.instructional-list {
+  display: grid;
+  gap: 12px;
+}
+
+.instructional-row {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.instructional-row h2,
+.instructional-row p {
+  margin: 0;
+}
+
+.instructional-row p {
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.raw-result pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 520px) {
+  main {
+    padding: 16px;
+  }
+
+  .theme-picker {
+    grid-template-columns: 1fr;
+  }
+
+  .score-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  [data-theme="western"] .score-display {
+    font-size: clamp(2.6rem, 16vw, 4.5rem);
+  }
 }

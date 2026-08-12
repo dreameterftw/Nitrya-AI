@@ -41,6 +41,17 @@ def extract_2d_pose(video_path: str | Path) -> list[np.ndarray | None]:
     return frames
 
 
+def extract_2d_pose_postprocess(
+    pose_2d: list[np.ndarray | None],
+    min_valid_frame_ratio: float = 0.7,
+) -> dict[str, list[np.ndarray | None] | dict[str, float | bool]]:
+    """Explicitly flag low-quality detections instead of letting None frames hide."""
+    return {
+        "pose_2d": pose_2d,
+        "quality": pose_quality_report(pose_2d, min_valid_frame_ratio),
+    }
+
+
 def video_to_pose_sequence(
     video_path: str | Path,
     *,

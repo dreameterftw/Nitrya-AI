@@ -10,6 +10,7 @@ from backend.pipeline.rhythm import (
 )
 from backend.pipeline.config import get_genre_config
 from backend.pipeline.keyframes import keyframe_accuracy
+from backend.pipeline.pose_pipeline import extract_2d_pose_postprocess
 from backend.pipeline.scoring import score_attempt_with_config, validate_with_config
 from backend.pipeline.quality import pose_quality_report, require_pose_quality
 from backend.pipeline.validate import check_separation
@@ -35,6 +36,30 @@ def test_alignment_and_form_score_are_scalar():
     assert path
     assert isinstance(score, float)
     assert score >= 0.0
+
+
+def test_identical_poses_score_zero_deviation():
+    pose = np.random.default_rng(1).random((17, 3))
+
+    assert compute_form_score([pose], [pose], [(0, 0)]) < 1e-6
+
+
+def test_procrustes_ignores_scale():
+    pose = np.random.default_rng(2).random((17, 3))
+    scaled = pose * 2.0
+
+    assert compute_form_score([pose], [scaled], [(0, 0)]) < 1e-6
+
+
+def test_alignment_handles_different_length_sequences():
+    rng = np.random.default_rng(3)
+    ref = [frame for frame in rng.random((100, 17, 3))]
+    user = [frame for frame in rng.random((80, 17, 3))]
+
+    _, path = align_sequences(ref, user)
+
+    assert len(path) > 0
+    assert path[-1][0] == 99
 
 
 def test_check_separation_passes_pairwise_threshold():
@@ -140,3 +165,12 @@ def test_require_pose_quality_raises_for_bad_capture():
         assert "confidence gate failed" in str(exc)
     else:
         raise AssertionError("Expected confidence gate failure")
+
+
+def test_none_frames_are_explicitly_flagged_not_silently_scored():
+    pose_2d = [np.random.rand(17, 2), None, np.random.rand(17, 2)]
+
+    result = extract_2d_pose_postprocess(pose_2d)
+
+    assert result["pose_2d"] == pose_2d
+    assert result["quality"]["passes_confidence_gate"] is False

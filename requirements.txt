@@ -1,0 +1,7 @@
+-r backend/pipeline/requirements.txt
+boto3
+celery
+fastapi
+python-multipart
+redis
+uvicorn[standard]

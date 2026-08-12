@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: nritya-api
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT"
+  - type: worker
+    name: nritya-worker
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "celery -A backend.api.tasks worker --loglevel=info"

@@ -1,0 +1,16 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 24px;
+}
+
+button,
+input,
+select {
+  margin: 4px;
+}
+
+video {
+  display: block;
+  max-width: 480px;
+  width: 100%;
+}

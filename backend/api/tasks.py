@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import tempfile
+import time
 from pathlib import Path
 
 from celery import Celery
@@ -10,6 +11,7 @@ from backend.api.storage import materialize_file, upload_to_r2
 from backend.api.supabase_client import get_supabase
 from backend.pipeline.cache import load_pose_sequence
 from backend.pipeline.pose_pipeline import video_to_pose_sequence
+from backend.pipeline.quality import require_pose_quality
 from backend.pipeline.rhythm import extract_musical_beats
 from backend.pipeline.scoring import score_attempt_with_config
 
@@ -34,19 +36,26 @@ def analyze_attempt(attempt_id: str, profile_id: str, video_url: str, fps: float
     if not profile:
         raise ValueError(f"Profile {profile_id!r} was not found.")
 
+    t0 = time.perf_counter()
     with tempfile.TemporaryDirectory() as tmpdir:
         attempt_path = materialize_file(video_url, Path(tmpdir) / f"{attempt_id}.mp4")
         pose_path = materialize_file(profile["pose_sequence_url"], Path(tmpdir) / f"{profile_id}_pose.npz")
 
         ref_seq = load_pose_sequence(pose_path)["normalized"]
-        user_seq = video_to_pose_sequence(attempt_path)["normalized"]
+        user_pose_data = video_to_pose_sequence(attempt_path)
+        require_pose_quality(user_pose_data["pose_2d"])
+        user_seq = user_pose_data["normalized"]
         musical_beats = extract_musical_beats(attempt_path)
         result = score_attempt_with_config(profile["genre"], ref_seq, user_seq, musical_beats, fps)
+
+    gpu_seconds = time.perf_counter() - t0
+    result["gpu_seconds_used"] = round(gpu_seconds, 3)
 
     supabase.table("attempts").update(
         {
             "score": result["total_score"],
             "feedback": result,
+            "gpu_seconds_used": result["gpu_seconds_used"],
         }
     ).eq("id", attempt_id).execute()
 

@@ -11,6 +11,7 @@ from backend.pipeline.rhythm import (
 from backend.pipeline.config import get_genre_config
 from backend.pipeline.keyframes import keyframe_accuracy
 from backend.pipeline.scoring import score_attempt_with_config, validate_with_config
+from backend.pipeline.quality import pose_quality_report, require_pose_quality
 from backend.pipeline.validate import check_separation
 
 
@@ -123,3 +124,19 @@ def test_validate_with_config_checks_higher_is_better_separation():
     )
 
     assert result["passed"] is True
+
+
+def test_pose_quality_report_flags_low_detection_ratio():
+    report = pose_quality_report([_frame(), None, None], min_valid_frame_ratio=0.7)
+
+    assert report["valid_frame_ratio"] == 0.333
+    assert report["passes_confidence_gate"] is False
+
+
+def test_require_pose_quality_raises_for_bad_capture():
+    try:
+        require_pose_quality([None, None, _frame()], min_valid_frame_ratio=0.7)
+    except ValueError as exc:
+        assert "confidence gate failed" in str(exc)
+    else:
+        raise AssertionError("Expected confidence gate failure")

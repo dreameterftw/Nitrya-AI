@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import warnings
+import os
 
 import numpy as np
 
@@ -9,11 +10,14 @@ def lift_to_3d(pose_2d: list[np.ndarray | None]) -> list[np.ndarray | None]:
     """
     Lift 2D keypoints into a 3D sequence.
 
-    Phase 1 development uses WHAM manually in Colab for real 3D lifting. Until the
-    WHAM batch output is wired back into this package, this local fallback preserves
-    the pipeline contract by placing 2D joints on z=0. Do not treat fallback scores
-    as passing the Phase 1 exit gate.
+    Phase 5 can route WHAM to Modal by setting USE_REMOTE_GPU=true. The local
+    fallback stays available for cheap development iteration.
     """
+    if os.getenv("USE_REMOTE_GPU", "").lower() in {"1", "true", "yes"}:
+        from .wham_modal import lift_to_3d_with_modal
+
+        return lift_to_3d_with_modal(pose_2d)
+
     warnings.warn(
         "Using planar z=0 lift fallback. Replace with WHAM output before judging "
         "Phase 1 acceptance.",

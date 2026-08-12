@@ -2,6 +2,7 @@
 boto3
 celery
 fastapi
+httpx
 python-multipart
 redis
 uvicorn[standard]

@@ -1,5 +1,6 @@
 numpy
 librosa
+modal
 supabase
 ultralytics
 tslearn

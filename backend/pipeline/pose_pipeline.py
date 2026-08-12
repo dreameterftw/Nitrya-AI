@@ -8,6 +8,7 @@ import numpy as np
 from .cache import save_pose_sequence
 from .lift import lift_to_3d
 from .normalize import normalize_sequence
+from .quality import pose_quality_report
 
 _YOLO_MODEL: Any | None = None
 
@@ -50,7 +51,12 @@ def video_to_pose_sequence(
     pose_3d = lift_to_3d(pose_2d)
     normalized = normalize_sequence(pose_3d)
 
-    sequence = {"pose_2d": pose_2d, "pose_3d": pose_3d, "normalized": normalized}
+    sequence = {
+        "pose_2d": pose_2d,
+        "pose_3d": pose_3d,
+        "normalized": normalized,
+        "quality": pose_quality_report(pose_2d),
+    }
     if cache_path is not None:
         save_pose_sequence(sequence, cache_path)
     return sequence

@@ -1,18 +1,25 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { AnalyzingScreen } from "@/components/AnalyzingScreen";
+import { ErrorScreen } from "@/components/ErrorScreen";
+import { trackFunnel } from "@/lib/track";
 
 export default function RecordPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const [profileId, setProfileId] = useState("");
+  const [profileId, setProfileId] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("profileId") ?? "";
+  });
   const [userId, setUserId] = useState("");
   const [status, setStatus] = useState("idle");
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
 
   async function startCamera() {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    trackFunnel("camera_enabled");
     if (videoRef.current) videoRef.current.srcObject = stream;
 
     const recorder = new MediaRecorder(stream);
@@ -26,6 +33,7 @@ export default function RecordPage() {
   function startRecording() {
     chunksRef.current = [];
     recorderRef.current?.start();
+    trackFunnel("recording_started");
     setStatus("recording");
   }
 
@@ -40,6 +48,7 @@ export default function RecordPage() {
     await stopped;
 
     setStatus("uploading");
+    trackFunnel("upload_started", { profileId });
     const blob = new Blob(chunksRef.current, { type: "video/webm" });
     const formData = new FormData();
     formData.append("video", blob, "attempt.webm");
@@ -49,19 +58,38 @@ export default function RecordPage() {
     const res = await fetch("/api/attempts", { method: "POST", body: formData });
     const data = await res.json();
     setStatus("processing");
-    pollForResult(data.task_id);
+    setResult({ taskId: data.task_id });
   }
 
-  async function pollForResult(taskId: string) {
-    const interval = window.setInterval(async () => {
-      const res = await fetch(`/api/attempts/${taskId}/status`);
-      const data = await res.json();
-      if (data.status === "done") {
-        window.clearInterval(interval);
-        setStatus("done");
-        setResult(data.result);
-      }
-    }, 2000);
+  function handleDone(doneResult: Record<string, unknown>) {
+    if (doneResult.error) {
+      trackFunnel("analysis_failed", { stage: String(doneResult.stage ?? "unknown") });
+    } else {
+      trackFunnel("analysis_complete", {
+        score: Number(doneResult.total_score ?? 0),
+        profileId,
+      });
+    }
+    setStatus("done");
+    setResult(doneResult);
+  }
+
+  if (status === "processing" && typeof result?.taskId === "string") {
+    return <AnalyzingScreen taskId={result.taskId} onDone={handleDone} />;
+  }
+
+  if (result?.error) {
+    return (
+      <main>
+        <ErrorScreen
+          message="Analysis failed - try recording again with better lighting or framing."
+          onRetry={() => {
+            setResult(null);
+            setStatus("camera_ready");
+          }}
+        />
+      </main>
+    );
   }
 
   return (

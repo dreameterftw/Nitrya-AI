@@ -90,9 +90,12 @@ async def create_attempt(
 async def get_status(task_id: str) -> dict:
     result = AsyncResult(task_id, app=celery_app)
     if result.state == "PENDING":
-        return {"status": "processing"}
+        return {"status": "queued", "stage": "queued", "pct": 0}
+    if result.state == "PROGRESS":
+        info = result.info if isinstance(result.info, dict) else {}
+        return {"status": "processing", **info}
     if result.state == "SUCCESS":
         return {"status": "done", "result": result.result}
     if result.state == "FAILURE":
-        raise HTTPException(status_code=500, detail="Analysis failed")
+        return {"status": "failed", "error": str(result.info)}
     return {"status": result.state.lower()}

@@ -37,6 +37,8 @@ These checks should run whenever scoring logic changes.
 - Real iOS Safari and Android Chrome camera capture.
 - Low light, partial body in frame, phone angle, and poor background tests.
 - Slow network upload and polling behavior.
+- Render cold-start wait behavior: first request after idle should show the
+  wake-up message instead of looking stuck.
 - PWA install behavior on iOS and Android.
 - Terms acceptance, content report/takedown path, and upload error states before real users.
 

@@ -13,6 +13,16 @@ def test_health_endpoint():
     assert response.json() == {"status": "ok"}
 
 
+def test_pending_attempt_status_includes_stage_and_pct():
+    client = TestClient(app)
+
+    response = client.get("/attempts/not-a-real-task/status")
+
+    assert response.status_code == 200
+    assert response.json()["status"] in {"queued", "processing"}
+    assert "pct" in response.json()
+
+
 def test_local_storage_roundtrip(tmp_path, monkeypatch):
     monkeypatch.delenv("R2_ACCOUNT_ID", raising=False)
     monkeypatch.delenv("R2_ACCESS_KEY", raising=False)

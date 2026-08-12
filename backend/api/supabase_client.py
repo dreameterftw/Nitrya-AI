@@ -7,8 +7,11 @@ from typing import Any
 
 @lru_cache(maxsize=1)
 def get_supabase() -> Any:
-    url = os.getenv("SUPABASE_URL")
-    key = os.getenv("SUPABASE_KEY")
+    from backend.config import get_settings
+
+    settings = get_settings()
+    url = str(settings["supabase_url"])
+    key = str(settings["supabase_key"])
     if not url or not key:
         raise RuntimeError("SUPABASE_URL and SUPABASE_KEY are required for API persistence.")
 

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTheme, type Theme } from "@/lib/theme-context";
 
-export default function ThemePicker() {
+export default function ThemeStepPage() {
   const { setTheme } = useTheme();
   const router = useRouter();
 

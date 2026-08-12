@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/react";
 import { ThemeShell } from "@/components/ThemeShell";
 import { ThemeProvider } from "@/lib/theme-context";
 
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <ThemeShell>{children}</ThemeShell>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );

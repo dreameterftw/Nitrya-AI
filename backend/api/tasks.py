@@ -22,8 +22,9 @@ celery_app = Celery(
 )
 
 
-@celery_app.task(name="backend.api.tasks.analyze_attempt")
-def analyze_attempt(attempt_id: str, profile_id: str, video_url: str, fps: float = 30.0) -> dict:
+@celery_app.task(bind=True, name="backend.api.tasks.analyze_attempt")
+def analyze_attempt(self, attempt_id: str, profile_id: str, video_url: str, fps: float = 30.0) -> dict:
+    self.update_state(state="PROGRESS", meta={"stage": "loading_profile", "pct": 10})
     supabase = get_supabase()
     profile = (
         supabase.table("profiles")
@@ -38,14 +39,18 @@ def analyze_attempt(attempt_id: str, profile_id: str, video_url: str, fps: float
 
     t0 = time.perf_counter()
     with tempfile.TemporaryDirectory() as tmpdir:
+        self.update_state(state="PROGRESS", meta={"stage": "downloading_video", "pct": 15})
         attempt_path = materialize_file(video_url, Path(tmpdir) / f"{attempt_id}.mp4")
         pose_path = materialize_file(profile["pose_sequence_url"], Path(tmpdir) / f"{profile_id}_pose.npz")
 
         ref_seq = load_pose_sequence(pose_path)["normalized"]
+        self.update_state(state="PROGRESS", meta={"stage": "extracting_pose", "pct": 30})
         user_pose_data = video_to_pose_sequence(attempt_path)
         require_pose_quality(user_pose_data["pose_2d"])
         user_seq = user_pose_data["normalized"]
+        self.update_state(state="PROGRESS", meta={"stage": "scoring_rhythm", "pct": 70})
         musical_beats = extract_musical_beats(attempt_path)
+        self.update_state(state="PROGRESS", meta={"stage": "finalizing", "pct": 90})
         result = score_attempt_with_config(profile["genre"], ref_seq, user_seq, musical_beats, fps)
 
     gpu_seconds = time.perf_counter() - t0
